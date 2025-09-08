@@ -27,7 +27,8 @@ namespace Entities
         {
             _sr = GetComponent<SpriteRenderer>() ?? gameObject.AddComponent<SpriteRenderer>();
             // Defaults
-            if (genome.speed == 0f)
+            // Check multiple fields to determine if genome is uninitialized
+            if (genome.hue == 0f && genome.size == 0f && genome.speed == 0f)
             {
                 genome = AgentGenome.RandomFor(SpeciesId.Producer);
             }
