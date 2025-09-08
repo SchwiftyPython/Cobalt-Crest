@@ -1,0 +1,204 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-9195691959875176877
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 115f2cd555b214fd7ad96acce51f4111, type: 3}
+  m_Name: Producer
+  m_EditorClassIdentifier: 
+  id: 0
+  speciesName: Producers
+  color: {r: 0, g: 1, b: 0, a: 1}
+  initialCount: 60
+  genomeRanges:
+    speed: {x: 0, y: 0}
+    metabolism: {x: 0, y: 0}
+    size: {x: 0, y: 0}
+    vision: {x: 0, y: 0}
+    hue: {x: 0, y: 0}
+    mutationSigma: {x: 0, y: 0}
+  speed: 2
+  metabolism: 0.4
+  sightRadius: 5
+  reproduceThreshold: 8
+  childCost: 3.5
+  eatRate: 1.2
+  attackRange: 0.7
+  attackDamage: 100
+  growthRate: 0.6
+  maxBiomass: 5
+  energyPerBiomass: 2
+--- !u!114 &-5979054824315198547
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 459125ebd80db4025a0d19114826f672, type: 3}
+  m_Name: EnvironmentDefinition
+  m_EditorClassIdentifier: 
+  yearLengthSeconds: 120
+  temperatureOverYear:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0.5
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  rainfallOverYear:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0.6
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 0.4
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  perlinScale: 0.1
+--- !u!114 &-4555737206944830696
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a55c3d1fb56e46388c3671387bb7e19, type: 3}
+  m_Name: SimulationConfig
+  m_EditorClassIdentifier: 
+  worldMin: {x: -12, y: -7}
+  worldMax: {x: 12, y: 7}
+  usePooling: 0
+  useEvolution: 0
+  useShelters: 0
+  useFMOD: 0
+  useURP2D: 0
+  targetFps: 60
+--- !u!114 &-3347084059014463553
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 115f2cd555b214fd7ad96acce51f4111, type: 3}
+  m_Name: Herbivore
+  m_EditorClassIdentifier: 
+  id: 1
+  speciesName: Herbivores
+  color: {r: 0, g: 1, b: 1, a: 1}
+  initialCount: 20
+  genomeRanges:
+    speed: {x: 0, y: 0}
+    metabolism: {x: 0, y: 0}
+    size: {x: 0, y: 0}
+    vision: {x: 0, y: 0}
+    hue: {x: 0, y: 0}
+    mutationSigma: {x: 0, y: 0}
+  speed: 1.8
+  metabolism: 0.4
+  sightRadius: 4
+  reproduceThreshold: 8
+  childCost: 3.5
+  eatRate: 1.2
+  attackRange: 0.7
+  attackDamage: 100
+  growthRate: 0.6
+  maxBiomass: 5
+  energyPerBiomass: 2
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4f93bf0840baa43059aeb4b7305a7c50, type: 3}
+  m_Name: ActiveConfig
+  m_EditorClassIdentifier: 
+  simulation: {fileID: -4555737206944830696}
+  environment: {fileID: -5979054824315198547}
+  species:
+  - {fileID: -9195691959875176877}
+  - {fileID: -3347084059014463553}
+  - {fileID: 4646394930394719962}
+--- !u!114 &4646394930394719962
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 115f2cd555b214fd7ad96acce51f4111, type: 3}
+  m_Name: Carnivore
+  m_EditorClassIdentifier: 
+  id: 2
+  speciesName: Carnivores
+  color: {r: 1, g: 0, b: 0, a: 1}
+  initialCount: 6
+  genomeRanges:
+    speed: {x: 0, y: 0}
+    metabolism: {x: 0, y: 0}
+    size: {x: 0, y: 0}
+    vision: {x: 0, y: 0}
+    hue: {x: 0, y: 0}
+    mutationSigma: {x: 0, y: 0}
+  speed: 2.2
+  metabolism: 0.6
+  sightRadius: 6
+  reproduceThreshold: 10
+  childCost: 4.5
+  eatRate: 1.2
+  attackRange: 0.7
+  attackDamage: 100
+  growthRate: 0.6
+  maxBiomass: 5
+  energyPerBiomass: 2

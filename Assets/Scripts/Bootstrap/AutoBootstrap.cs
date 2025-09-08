@@ -51,7 +51,13 @@ public static class AutoBootstrap
         }
         else cam.orthographic = true;
     }
-
+    
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    private static void PreInit()
+    {
+        if (Object.FindObjectOfType<ConfigService>() == null)
+            new GameObject("ConfigService").AddComponent<ConfigService>();
+    }
 }
 
 /// <summary>Creates the Canvas, EventSystem, Time Controls, and Population Graph.</summary>
