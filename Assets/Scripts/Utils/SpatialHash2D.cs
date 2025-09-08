@@ -13,7 +13,11 @@ public class SpatialHash2D<T> {
     results.Clear();
     int minX=Mathf.FloorToInt((pos.x-radius)/_cellSize), maxX=Mathf.FloorToInt((pos.x+radius)/_cellSize);
     int minY=Mathf.FloorToInt((pos.y-radius)/_cellSize), maxY=Mathf.FloorToInt((pos.y+radius)/_cellSize);
-    for(int y=minY;y<=maxY;y++) for(int x=minX;x<=maxX;x++){ var key=new Vector2Int(x,y); if(_cells.TryGetValue(key, out var list)) results.AddRange(list); }
+    for(var y=minY;y<=maxY;y++) for(var x=minX;x<=maxX;x++){ var key=new Vector2Int(x,y); if(_cells.TryGetValue(key, out var list))
+      {
+        results.AddRange(list);
+      }
+    }
     return results;
   }
 }

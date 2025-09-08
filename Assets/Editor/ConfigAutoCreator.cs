@@ -1,11 +1,22 @@
 #if UNITY_EDITOR
 using UnityEditor; using UnityEngine; using System.Linq;
+using Data;
+
 [InitializeOnLoad] public static class EcosphereConfigAutoCreator {
   static EcosphereConfigAutoCreator(){ EditorApplication.delayCall += Ensure; }
   static void Ensure(){
-    if (EditorApplication.isPlayingOrWillChangePlaymode || EditorApplication.isCompiling || EditorApplication.isUpdating){ EditorApplication.delayCall += Ensure; return; }
-    var resDir = "Assets/Configs/Resources"; if (!System.IO.Directory.Exists(resDir)) System.IO.Directory.CreateDirectory(resDir);
-    var activePath = resDir + "/ActiveConfig.asset"; var active = AssetDatabase.LoadAssetAtPath<ActiveConfig>(activePath); bool created=false;
+    if (EditorApplication.isPlayingOrWillChangePlaymode || EditorApplication.isCompiling ||
+        EditorApplication.isUpdating)
+    {
+      EditorApplication.delayCall += Ensure; 
+      return;
+    }
+    var resDir = "Assets/Configs/Resources"; if (!System.IO.Directory.Exists(resDir))
+    {
+      System.IO.Directory.CreateDirectory(resDir);
+    }
+
+    var activePath = resDir + "/ActiveConfig.asset"; var active = AssetDatabase.LoadAssetAtPath<ActiveConfig>(activePath); var created=false;
     if (active==null){ active = ScriptableObject.CreateInstance<ActiveConfig>(); AssetDatabase.CreateAsset(active, activePath); created=true; }
     if (active.simulation==null){ var sim = ScriptableObject.CreateInstance<SimulationConfig>(); sim.name="SimulationConfig"; AssetDatabase.AddObjectToAsset(sim, active); active.simulation=sim; created=true; }
     if (active.environment==null){ var env = ScriptableObject.CreateInstance<EnvironmentDefinition>(); env.name="EnvironmentDefinition"; AssetDatabase.AddObjectToAsset(env, active); active.environment=env; created=true; }
