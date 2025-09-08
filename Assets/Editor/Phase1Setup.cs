@@ -20,7 +20,10 @@ public static class EcospherePhase1Setup
     private static void OnLoad()
     {
         // Only run once per editor session, and defer until editor is fully ready
-        if (SessionState.GetBool(SessionKey, false)) return;
+        if (SessionState.GetBool(SessionKey, false))
+        {
+            return;
+        }
 
         EditorApplication.delayCall += TryDeferredSetup;
     }
@@ -50,7 +53,10 @@ public static class EcospherePhase1Setup
     {
         // Ensure Scenes folder exists
         var dir = System.IO.Path.GetDirectoryName(ScenePath);
-        if (!System.IO.Directory.Exists(dir)) System.IO.Directory.CreateDirectory(dir);
+        if (!System.IO.Directory.Exists(dir))
+        {
+            System.IO.Directory.CreateDirectory(dir);
+        }
 
         // Create a new empty scene only if MainScene doesn’t exist yet
         if (!System.IO.File.Exists(ScenePath))
@@ -61,7 +67,7 @@ public static class EcospherePhase1Setup
 
         // Add to Build Settings if missing
         var scenes = EditorBuildSettings.scenes;
-        bool exists = false;
+        var exists = false;
         foreach (var s in scenes) if (s.path == ScenePath) { exists = true; break; }
         if (!exists)
         {

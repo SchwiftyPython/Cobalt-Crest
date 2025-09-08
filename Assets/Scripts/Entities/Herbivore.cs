@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Data;
+using Managers;
 using UnityEngine;
 
 namespace Entities
@@ -35,7 +36,11 @@ namespace Entities
         {
             _sr = GetComponent<SpriteRenderer>() ?? gameObject.AddComponent<SpriteRenderer>();
             // Default init in case SetupOnSpawn isn't called (editor placed)
-            if (genome.speed == 0f) genome = AgentGenome.RandomFor(SpeciesId.Herbivore);
+            if (genome.speed == 0f)
+            {
+                genome = AgentGenome.RandomFor(SpeciesId.Herbivore);
+            }
+
             ApplyGenomeAndConfig();
             _dir = Random.insideUnitCircle.normalized;
         }
@@ -55,9 +60,9 @@ namespace Entities
             var def = ConfigService.Instance?.GetSpecies(SpeciesId.Herbivore);
 
             // Base values from species def (fall back to current/public defaults)
-            float baseSpeed = def ? def.speed : speed;
-            float baseMetab = def ? def.metabolism : metabolism;
-            float baseVision= def ? def.sightRadius : sightRadius;
+            var baseSpeed = def ? def.speed : speed;
+            var baseMetab = def ? def.metabolism : metabolism;
+            var baseVision= def ? def.sightRadius : sightRadius;
 
             // Multiply by genome (genome ranges should be centered ~1.0 for multipliers)
             speed      = baseSpeed * Mathf.Max(0.05f, genome.speed);
@@ -72,25 +77,28 @@ namespace Entities
             {
                 _sr.sprite = SpriteFactory.CreateDiscSprite(ConfigService.Instance?.GetSpeciesColor(SpeciesId.Herbivore, Color.cyan) ?? Color.cyan, 14);
                 _sr.color  = AgentGenome.HueToColor(genome.hue);
-                float sizeMult = Mathf.Clamp(genome.size, 0.4f, 2f);
+                var sizeMult = Mathf.Clamp(genome.size, 0.4f, 2f);
                 transform.localScale = Vector3.one * Mathf.Lerp(0.7f, 1.4f, Mathf.InverseLerp(0.8f, 1.3f, sizeMult));
             }
         }
 
         void Update()
         {
-            float dt = Time.deltaTime * EcosystemManager.SimulationSpeed;
+            var dt = Time.deltaTime * EcosystemManager.SimulationSpeed;
             _retargetTimer -= dt;
             _wanderTimer   -= dt;
 
-            float seekInterval   = (ConfigService.Instance?.Sim?.defaultSeekInterval)    ?? 0.5f;
-            float wanderInterval = (ConfigService.Instance?.Sim?.herbivoreWanderInterval)?? 1.0f;
+            var seekInterval   = (ConfigService.Instance?.Sim?.defaultSeekInterval)    ?? 0.5f;
+            var wanderInterval = (ConfigService.Instance?.Sim?.herbivoreWanderInterval)?? 1.0f;
 
             if (_retargetTimer <= 0f)
             {
                 _retargetTimer = seekInterval;
                 var target = FindNearestProducer();
-                if (target != null) _dir = ((Vector2)target.transform.position - (Vector2)transform.position).normalized;
+                if (target != null)
+                {
+                    _dir = ((Vector2)target.transform.position - (Vector2)transform.position).normalized;
+                }
                 else if (_wanderTimer <= 0f)
                 {
                     _dir = Vector2.Lerp(_dir, Random.insideUnitCircle.normalized, 0.5f);
@@ -103,41 +111,50 @@ namespace Entities
 
             var p = FindNearestProducer();
             if (p != null && Vector2.Distance(transform.position, p.transform.position) < 0.6f)
+            {
                 energy += p.Consume(eatRate * dt);
+            }
 
             if (energy >= reproduceThreshold)
             {
                 energy -= childCost;
 
                 var sim   = ConfigService.Instance?.Sim;
-                bool evo  = sim != null && sim.useEvolution;
-                float ms  = sim != null ? sim.mutationScale : 1f;
+                var evo  = sim != null && sim.useEvolution;
+                var ms  = sim != null ? sim.mutationScale : 1f;
 
                 var childGenome = evo ? genome.Mutated(SpeciesId.Herbivore, ms) : genome;
                 Spawner.SpawnHerbivore((Vector2)transform.position + Random.insideUnitCircle * 0.5f, childGenome);
             }
 
-            if (energy <= 0f) Spawner.DespawnHerbivore(this);
+            if (energy <= 0f)
+            {
+                Spawner.DespawnHerbivore(this);
+            }
         }
 
         private Producer FindNearestProducer()
         {
-            Producer best = null; float bestD = sightRadius;
+            Producer best = null; var bestD = sightRadius;
             var idx = SpatialIndex.Instance;
             if (idx != null)
             {
                 idx.QueryProducers(transform.position, sightRadius, _nearP);
-                for (int i = 0; i < _nearP.Count; i++)
+                for (var i = 0; i < _nearP.Count; i++)
                 {
-                    var p = _nearP[i]; if (p == null) continue;
-                    float d = Vector2.Distance(transform.position, p.transform.position);
+                    var p = _nearP[i]; if (p == null)
+                    {
+                        continue;
+                    }
+
+                    var d = Vector2.Distance(transform.position, p.transform.position);
                     if (d < bestD) { bestD = d; best = p; }
                 }
                 return best;
             }
             foreach (var p in Producer.All)
             {
-                float d = Vector2.Distance(transform.position, p.transform.position);
+                var d = Vector2.Distance(transform.position, p.transform.position);
                 if (d < bestD) { bestD = d; best = p; }
             }
             return best;

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Data;
+using Managers;
 using UnityEngine;
 
 namespace Entities
@@ -33,7 +34,11 @@ namespace Entities
         void Awake()
         {
             _sr = GetComponent<SpriteRenderer>() ?? gameObject.AddComponent<SpriteRenderer>();
-            if (genome.speed == 0f) genome = AgentGenome.RandomFor(SpeciesId.Carnivore);
+            if (genome.speed == 0f)
+            {
+                genome = AgentGenome.RandomFor(SpeciesId.Carnivore);
+            }
+
             ApplyGenomeAndConfig();
             _dir = Random.insideUnitCircle.normalized;
         }
@@ -52,9 +57,9 @@ namespace Entities
         {
             var def = ConfigService.Instance?.GetSpecies(SpeciesId.Carnivore);
 
-            float baseSpeed   = def ? def.speed       : speed;
-            float baseMetab   = def ? def.metabolism  : metabolism;
-            float baseVision  = def ? def.sightRadius : sightRadius;
+            var baseSpeed   = def ? def.speed       : speed;
+            var baseMetab   = def ? def.metabolism  : metabolism;
+            var baseVision  = def ? def.sightRadius : sightRadius;
 
             speed      = baseSpeed * Mathf.Max(0.05f, genome.speed);
             metabolism = baseMetab * Mathf.Max(0.01f, genome.metabolism);
@@ -64,26 +69,52 @@ namespace Entities
 
             if (_sr != null)
             {
-                _sr.sprite = SpriteFactory.CreateDiscSprite(ConfigService.Instance?.GetSpeciesColor(SpeciesId.Carnivore, Color.red) ?? Color.red, 16);
-                _sr.color  = AgentGenome.HueToColor(genome.hue, 0.9f, 1f);
-                float sizeMult = Mathf.Clamp(genome.size, 0.4f, 2f);
+                // Keep the white sprite so tint does the coloring
+                _sr.sprite = SpriteFactory.CreateDiscSprite(Color.white, 16);
+
+// ---- RED-ADJACENT HUE BAND ----
+// Base species color (usually red in your config)
+                var baseSpecies = ConfigService.Instance?.GetSpeciesColor(SpeciesId.Carnivore, Color.red) ?? Color.red;
+
+// Convert base to HSV to find the "red" reference hue
+                Color.RGBToHSV(baseSpecies, out float hBase, out float sBase, out float vBase);
+
+// Limit carnivore hue to a small window centered on the base hue.
+// 0.06 ≈ ±22° around red; adjust to taste (smaller = more uniform red).
+                const float hueWidth = 0.06f;
+                float mappedHue = Mathf.Repeat(hBase + (genome.hue - 0.5f) * (hueWidth * 2f), 1f);
+
+// Keep them vivid and bright (override low S/V from base if needed)
+                float s = Mathf.Max(sBase, 0.95f);
+                float v = Mathf.Max(vBase, 0.97f);
+
+// Final color strictly "red family"
+                _sr.color = Color.HSVToRGB(mappedHue, s, v);
+                
+                var sizeMult = Mathf.Clamp(genome.size, 0.4f, 2f);
                 transform.localScale = Vector3.one * Mathf.Lerp(0.75f, 1.5f, Mathf.InverseLerp(0.8f, 1.3f, sizeMult));
             }
         }
 
         void Update()
         {
-            float dt = Time.deltaTime * EcosystemManager.SimulationSpeed;
+            var dt = Time.deltaTime * EcosystemManager.SimulationSpeed;
             _retargetTimer -= dt;
 
-            float seekInterval = (ConfigService.Instance?.Sim?.carnivoreSeekInterval) ?? 0.35f;
+            var seekInterval = (ConfigService.Instance?.Sim?.carnivoreSeekInterval) ?? 0.35f;
 
             if (_retargetTimer <= 0f)
             {
                 _retargetTimer = seekInterval;
                 var prey = FindNearestHerbivore();
-                if (prey != null) _dir = ((Vector2)prey.transform.position - (Vector2)transform.position).normalized;
-                else _dir = Vector2.Lerp(_dir, Random.insideUnitCircle.normalized, 0.5f);
+                if (prey != null)
+                {
+                    _dir = ((Vector2)prey.transform.position - (Vector2)transform.position).normalized;
+                }
+                else
+                {
+                    _dir = Vector2.Lerp(_dir, Random.insideUnitCircle.normalized, 0.5f);
+                }
             }
 
             transform.position += (Vector3)(_dir * speed * dt);
@@ -101,34 +132,41 @@ namespace Entities
                 energy -= childCost;
 
                 var sim   = ConfigService.Instance?.Sim;
-                bool evo  = sim != null && sim.useEvolution;
-                float ms  = sim != null ? sim.mutationScale : 1f;
+                var evo  = sim != null && sim.useEvolution;
+                var ms  = sim != null ? sim.mutationScale : 1f;
 
                 var childGenome = evo ? genome.Mutated(SpeciesId.Carnivore, ms) : genome;
                 Spawner.SpawnCarnivore((Vector2)transform.position + Random.insideUnitCircle * 0.5f, childGenome);
             }
 
-            if (energy <= 0f) Spawner.DespawnCarnivore(this);
+            if (energy <= 0f)
+            {
+                Spawner.DespawnCarnivore(this);
+            }
         }
 
         private Herbivore FindNearestHerbivore()
         {
-            Herbivore best = null; float bestD = sightRadius;
+            Herbivore best = null; var bestD = sightRadius;
             var idx = SpatialIndex.Instance;
             if (idx != null)
             {
                 idx.QueryHerbivores(transform.position, sightRadius, _nearH);
-                for (int i = 0; i < _nearH.Count; i++)
+                for (var i = 0; i < _nearH.Count; i++)
                 {
-                    var h = _nearH[i]; if (h == null) continue;
-                    float d = Vector2.Distance(transform.position, h.transform.position);
+                    var h = _nearH[i]; if (h == null)
+                    {
+                        continue;
+                    }
+
+                    var d = Vector2.Distance(transform.position, h.transform.position);
                     if (d < bestD) { bestD = d; best = h; }
                 }
                 return best;
             }
             foreach (var h in Herbivore.All)
             {
-                float d = Vector2.Distance(transform.position, h.transform.position);
+                var d = Vector2.Distance(transform.position, h.transform.position);
                 if (d < bestD) { bestD = d; best = h; }
             }
             return best;

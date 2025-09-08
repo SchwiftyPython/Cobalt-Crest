@@ -1,3 +1,4 @@
+using Managers;
 using UnityEngine;
 
 namespace Data
@@ -33,9 +34,9 @@ namespace Data
         {
             var def = ConfigService.Instance?.GetSpecies(id);
             var r = def?.genomeRanges ?? DefaultRanges();
-            float s = Mathf.Max(0f, mutationSigma) * Mathf.Max(0f, globalScale);
+            var s = Mathf.Max(0f, mutationSigma) * Mathf.Max(0f, globalScale);
 
-            AgentGenome g = this;
+            var g = this;
             g.speed         = Mut(speed, s);
             g.metabolism    = Mut(metabolism, s);
             g.size          = Mut(size, s);
@@ -68,10 +69,16 @@ namespace Data
         // Box–Muller
         static float Gaussian(float mean, float stdDev)
         {
-            if (stdDev <= 0f) return mean;
-            float u1 = 1f - Random.value;
-            float u2 = 1f - Random.value;
-            float z0 = Mathf.Sqrt(-2.0f * Mathf.Log(u1)) * Mathf.Cos(2f * Mathf.PI * u2);
+            if (stdDev <= 0f)
+            {
+                return mean;
+            }
+
+            var u1 = 1f - Random.value;
+            var u2 = 1f - Random.value;
+            
+            var z0 = Mathf.Sqrt(-2.0f * Mathf.Log(u1)) * Mathf.Cos(2f * Mathf.PI * u2);
+            
             return mean + stdDev * z0;
         }
 

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Data;
+using Managers;
 using UnityEngine;
 
 namespace Entities
@@ -26,7 +27,10 @@ namespace Entities
         {
             _sr = GetComponent<SpriteRenderer>() ?? gameObject.AddComponent<SpriteRenderer>();
             // Defaults
-            if (genome.speed == 0f) genome = AgentGenome.RandomFor(SpeciesId.Producer);
+            if (genome.speed == 0f)
+            {
+                genome = AgentGenome.RandomFor(SpeciesId.Producer);
+            }
 
             var def = ConfigService.Instance ? ConfigService.Instance.GetSpecies(SpeciesId.Producer) : null;
             if (def != null)
@@ -40,7 +44,7 @@ namespace Entities
             _sr.sprite = SpriteFactory.CreateDiscSprite(baseColor, 12);
             _sr.color  = AgentGenome.HueToColor(genome.hue, 0.7f, 0.95f);
 
-            float sizeMult = Mathf.Clamp(genome.size, 0.5f, 1.6f);
+            var sizeMult = Mathf.Clamp(genome.size, 0.5f, 1.6f);
             transform.localScale = Vector3.one * Mathf.Lerp(0.6f, 1.3f, Mathf.InverseLerp(0.8f, 1.3f, sizeMult));
 
             _env = Object.FindObjectOfType<EnvironmentManager>();
@@ -52,21 +56,29 @@ namespace Entities
             genome = g;
             // refresh visuals quickly
             var baseColor = ConfigService.Instance ? ConfigService.Instance.GetSpeciesColor(SpeciesId.Producer, Color.green) : Color.green;
-            if (_sr == null) _sr = gameObject.AddComponent<SpriteRenderer>();
+            if (_sr == null)
+            {
+                _sr = gameObject.AddComponent<SpriteRenderer>();
+            }
+
             _sr.sprite = SpriteFactory.CreateDiscSprite(baseColor, 12);
             _sr.color  = AgentGenome.HueToColor(genome.hue, 0.7f, 0.95f);
 
-            float sizeMult = Mathf.Clamp(genome.size, 0.5f, 1.6f);
+            var sizeMult = Mathf.Clamp(genome.size, 0.5f, 1.6f);
             transform.localScale = Vector3.one * Mathf.Lerp(0.6f, 1.3f, Mathf.InverseLerp(0.8f, 1.3f, sizeMult));
         }
 
         void Update()
         {
-            float dt = Time.deltaTime * EcosystemManager.SimulationSpeed;
-            if (_env == null) _env = Object.FindObjectOfType<EnvironmentManager>();
+            var dt = Time.deltaTime * EcosystemManager.SimulationSpeed;
+            if (_env == null)
+            {
+                _env = Object.FindObjectOfType<EnvironmentManager>();
+            }
+
             if (_env != null)
             {
-                float envMult = 0.5f + 0.5f * Mathf.Min(_env.CurrentRain, _env.CurrentTemp);
+                var envMult = 0.5f + 0.5f * Mathf.Min(_env.CurrentRain, _env.CurrentTemp);
                 biomass = Mathf.Min(maxBiomass, biomass + growthRate * envMult * dt);
 
                 // tint deeper as biomass grows
@@ -80,7 +92,7 @@ namespace Entities
 
         public float Consume(float amount)
         {
-            float taken = Mathf.Min(amount, biomass);
+            var taken = Mathf.Min(amount, biomass);
             biomass -= taken;
             return taken * energyPerBiomass;
         }

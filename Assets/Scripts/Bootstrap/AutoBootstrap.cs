@@ -1,4 +1,5 @@
 using Entities;
+using Managers;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -13,17 +14,26 @@ public static class AutoBootstrap
     private static void Init()
     {
         if (Object.FindObjectOfType<EcosystemManager>() == null)
+        {
             new GameObject("EcosystemManager").AddComponent<EcosystemManager>();
+        }
+
         if (Object.FindObjectOfType<EnvironmentManager>() == null)
+        {
             new GameObject("EnvironmentManager").AddComponent<EnvironmentManager>();
+        }
 
         EnsureCamera();                // <-- new
 
         if (Object.FindObjectOfType<Canvas>() == null)
+        {
             UICreator.CreateUI();
+        }
 
         if (Producer.All.Count == 0 && Herbivore.All.Count == 0 && Carnivore.All.Count == 0)
+        {
             Spawner.SpawnInitial();
+        }
     }
 
     private static void EnsureCamera()
@@ -38,26 +48,33 @@ public static class AutoBootstrap
             cam.clearFlags = CameraClearFlags.SolidColor;
             cam.backgroundColor = new Color(0.12f, 0.12f, 0.14f, 1f);
 
-            Vector2 min = Spawner.worldMin, max = Spawner.worldMax;
-            Vector2 center = (min + max) * 0.5f;
+            Vector2 min = Spawner.WorldMin, max = Spawner.WorldMax;
+            var center = (min + max) * 0.5f;
             cam.transform.position = new Vector3(center.x, center.y, -10f);
 
-            float aspect = Mathf.Max(0.1f, (float)Screen.width / Mathf.Max(1, Screen.height));
-            float halfH = (max.y - min.y) * 0.5f + 1f;
-            float halfW = (max.x - min.x) * 0.5f + 1f;
+            var aspect = Mathf.Max(0.1f, (float)Screen.width / Mathf.Max(1, Screen.height));
+            var halfH = (max.y - min.y) * 0.5f + 1f;
+            var halfW = (max.x - min.x) * 0.5f + 1f;
             cam.orthographicSize = Mathf.Max(halfH, halfW / aspect);
 
             if (Object.FindObjectOfType<AudioListener>() == null)
+            {
                 camGO.AddComponent<AudioListener>();
+            }
         }
-        else cam.orthographic = true;
+        else
+        {
+            cam.orthographic = true;
+        }
     }
     
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     private static void PreInit()
     {
         if (Object.FindObjectOfType<ConfigService>() == null)
+        {
             new GameObject("ConfigService").AddComponent<ConfigService>();
+        }
     }
 }
 
@@ -70,7 +87,10 @@ public static class UICreator
         // Fallback: try Arial for older editors just in case.
         var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         if (font == null)
+        {
             font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+        }
+
         return font;
     }
 
