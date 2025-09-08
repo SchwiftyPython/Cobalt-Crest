@@ -1,3 +1,5 @@
+using Data;
+using Entities;
 using UnityEngine;
 
 public static class Spawner
@@ -21,29 +23,30 @@ public static class Spawner
         for (int i = 0; i < carnN; i++) SpawnCarnivore(RandomPos());
     }
 
-    public static void SpawnProducer(Vector2 at)
+    public static void SpawnProducer(Vector2 at, AgentGenome? genome = null)
     {
-        if (Pooled) { PoolingService.Instance.SpawnProducer(at); return; }
+        if (Pooled) { PoolingService.Instance.SpawnProducer(at, genome); return; }
         var go = new GameObject("Producer");
-        go.transform.position = at;
-        go.AddComponent<Producer>();
+        var c = go.AddComponent<Producer>();
+        c.SetupOnSpawn(at, genome ?? AgentGenome.RandomFor(SpeciesId.Producer));
     }
 
-    public static void SpawnHerbivore(Vector2 at)
+    public static void SpawnHerbivore(Vector2 at, AgentGenome? genome = null)
     {
-        if (Pooled) { PoolingService.Instance.SpawnHerbivore(at); return; }
+        if (Pooled) { PoolingService.Instance.SpawnHerbivore(at, genome); return; }
         var go = new GameObject("Herbivore");
-        go.transform.position = at;
-        go.AddComponent<Herbivore>();
+        var c = go.AddComponent<Herbivore>();
+        c.SetupOnSpawn(at, genome ?? AgentGenome.RandomFor(SpeciesId.Herbivore));
     }
 
-    public static void SpawnCarnivore(Vector2 at)
+    public static void SpawnCarnivore(Vector2 at, AgentGenome? genome = null)
     {
-        if (Pooled) { PoolingService.Instance.SpawnCarnivore(at); return; }
+        if (Pooled) { PoolingService.Instance.SpawnCarnivore(at, genome); return; }
         var go = new GameObject("Carnivore");
-        go.transform.position = at;
-        go.AddComponent<Carnivore>();
+        var c = go.AddComponent<Carnivore>();
+        c.SetupOnSpawn(at, genome ?? AgentGenome.RandomFor(SpeciesId.Carnivore));
     }
+
 
     // ✅ Despawn helpers
     public static void DespawnProducer(Producer p)

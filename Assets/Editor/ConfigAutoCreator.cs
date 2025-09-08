@@ -3,7 +3,12 @@ using UnityEditor; using UnityEngine; using System.Linq;
 [InitializeOnLoad] public static class EcosphereConfigAutoCreator {
   static EcosphereConfigAutoCreator(){ EditorApplication.delayCall += Ensure; }
   static void Ensure(){
-    if (EditorApplication.isPlayingOrWillChangePlaymode || EditorApplication.isCompiling || EditorApplication.isUpdating){ EditorApplication.delayCall += Ensure; return; }
+    if (EditorApplication.isPlayingOrWillChangePlaymode || EditorApplication.isCompiling ||
+        EditorApplication.isUpdating)
+    {
+      EditorApplication.delayCall += Ensure; 
+      return;
+    }
     var resDir = "Assets/Configs/Resources"; if (!System.IO.Directory.Exists(resDir)) System.IO.Directory.CreateDirectory(resDir);
     var activePath = resDir + "/ActiveConfig.asset"; var active = AssetDatabase.LoadAssetAtPath<ActiveConfig>(activePath); bool created=false;
     if (active==null){ active = ScriptableObject.CreateInstance<ActiveConfig>(); AssetDatabase.CreateAsset(active, activePath); created=true; }

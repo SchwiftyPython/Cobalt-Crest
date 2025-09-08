@@ -1,4 +1,6 @@
-using System.Collections.Generic; using UnityEngine;
+using System.Collections.Generic;
+using Entities;
+using UnityEngine;
 public class SpatialIndex : MonoBehaviour {
   public static SpatialIndex Instance { get; private set; }
   private SpatialHash2D<Producer> _producers; private SpatialHash2D<Herbivore> _herbivores;
