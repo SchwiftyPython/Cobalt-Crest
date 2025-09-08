@@ -36,7 +36,7 @@ namespace Entities
         {
             _sr = GetComponent<SpriteRenderer>() ?? gameObject.AddComponent<SpriteRenderer>();
             // Default init in case SetupOnSpawn isn't called (editor placed)
-            if (genome.speed == 0f)
+            if (genome.Equals(default(AgentGenome)))
             {
                 genome = AgentGenome.RandomFor(SpeciesId.Herbivore);
             }
