@@ -1,24 +1,29 @@
 using UnityEngine;
 
-/// <summary>Spawns initial populations and provides helpers for reproduction.</summary>
 public static class Spawner
 {
-    public static int initialProducers = 600;
-    public static int initialHerbivores = 20;
-    public static int initialCarnivores = 1;
+    public static Vector2 worldMin => (ConfigService.Instance?.Sim?.worldMin) ?? new Vector2(-12, -7);
+    public static Vector2 worldMax => (ConfigService.Instance?.Sim?.worldMax) ?? new Vector2(12, 7);
 
-    public static Vector2 worldMin = new Vector2(-12, -7);
-    public static Vector2 worldMax = new Vector2(12, 7);
+    // Pooling toggle + safety (only use pool if the flag is on AND the service exists)
+    static bool UsePooling => (ConfigService.Instance?.Sim?.usePooling) ?? false;
+    static bool Pooled => UsePooling && PoolingService.Instance != null;
 
     public static void SpawnInitial()
     {
-        for (int i=0;i<initialProducers;i++) SpawnProducer(RandomPos());
-        for (int i=0;i<initialHerbivores;i++) SpawnHerbivore(RandomPos());
-        for (int i=0;i<initialCarnivores;i++) SpawnCarnivore(RandomPos());
+        var cfg = ConfigService.Instance;
+        int prodN = cfg?.GetSpecies(SpeciesId.Producer)?.initialCount ?? 60;
+        int herbN = cfg?.GetSpecies(SpeciesId.Herbivore)?.initialCount ?? 20;
+        int carnN = cfg?.GetSpecies(SpeciesId.Carnivore)?.initialCount ?? 6;
+
+        for (int i = 0; i < prodN; i++) SpawnProducer(RandomPos());
+        for (int i = 0; i < herbN; i++) SpawnHerbivore(RandomPos());
+        for (int i = 0; i < carnN; i++) SpawnCarnivore(RandomPos());
     }
 
     public static void SpawnProducer(Vector2 at)
     {
+        if (Pooled) { PoolingService.Instance.SpawnProducer(at); return; }
         var go = new GameObject("Producer");
         go.transform.position = at;
         go.AddComponent<Producer>();
@@ -26,6 +31,7 @@ public static class Spawner
 
     public static void SpawnHerbivore(Vector2 at)
     {
+        if (Pooled) { PoolingService.Instance.SpawnHerbivore(at); return; }
         var go = new GameObject("Herbivore");
         go.transform.position = at;
         go.AddComponent<Herbivore>();
@@ -33,13 +39,34 @@ public static class Spawner
 
     public static void SpawnCarnivore(Vector2 at)
     {
+        if (Pooled) { PoolingService.Instance.SpawnCarnivore(at); return; }
         var go = new GameObject("Carnivore");
         go.transform.position = at;
         go.AddComponent<Carnivore>();
     }
 
-    private static Vector2 RandomPos()
+    // ✅ Despawn helpers
+    public static void DespawnProducer(Producer p)
     {
-        return new Vector2(Random.Range(worldMin.x, worldMax.x), Random.Range(worldMin.y, worldMax.y));
+        if (p == null) return;
+        if (Pooled) PoolingService.Instance.Despawn(p);
+        else Object.Destroy(p.gameObject);
     }
+
+    public static void DespawnHerbivore(Herbivore h)
+    {
+        if (h == null) return;
+        if (Pooled) PoolingService.Instance.Despawn(h);
+        else Object.Destroy(h.gameObject);
+    }
+
+    public static void DespawnCarnivore(Carnivore c)
+    {
+        if (c == null) return;
+        if (Pooled) PoolingService.Instance.Despawn(c);
+        else Object.Destroy(c.gameObject);
+    }
+
+    static Vector2 RandomPos()
+        => new Vector2(Random.Range(worldMin.x, worldMax.x), Random.Range(worldMin.y, worldMax.y));
 }
