@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Data;
 using Managers;
 using UnityEngine;
+using Utils;
 
 namespace Entities
 {
@@ -72,23 +73,23 @@ namespace Entities
                 // Keep the white sprite so tint does the coloring
                 _sr.sprite = SpriteFactory.CreateDiscSprite(Color.white, 16);
 
-// ---- RED-ADJACENT HUE BAND ----
-// Base species color (usually red in your config)
+                // ---- RED-ADJACENT HUE BAND ----
+                // Base species color 
                 var baseSpecies = ConfigService.Instance?.GetSpeciesColor(SpeciesId.Carnivore, Color.red) ?? Color.red;
 
-// Convert base to HSV to find the "red" reference hue
+                // Convert base to HSV to find the "red" reference hue
                 Color.RGBToHSV(baseSpecies, out float hBase, out float sBase, out float vBase);
 
-// Limit carnivore hue to a small window centered on the base hue.
-// 0.06 ≈ ±22° around red; adjust to taste (smaller = more uniform red).
+                // Limit carnivore hue to a small window centered on the base hue.
+                // 0.06 ≈ ±22° around red; adjust to taste (smaller = more uniform red).
                 const float hueWidth = 0.06f;
                 float mappedHue = Mathf.Repeat(hBase + (genome.hue - 0.5f) * (hueWidth * 2f), 1f);
 
-// Keep them vivid and bright (override low S/V from base if needed)
+                // Keep them vivid and bright (override low S/V from base if needed)
                 float s = Mathf.Max(sBase, 0.95f);
                 float v = Mathf.Max(vBase, 0.97f);
 
-// Final color strictly "red family"
+                // Final color strictly "red family"
                 _sr.color = Color.HSVToRGB(mappedHue, s, v);
                 
                 var sizeMult = Mathf.Clamp(genome.size, 0.4f, 2f);

@@ -17,12 +17,12 @@ MonoBehaviour:
   color: {r: 0, g: 1, b: 0, a: 1}
   initialCount: 60
   genomeRanges:
-    speed: {x: 0, y: 0}
-    metabolism: {x: 0, y: 0}
-    size: {x: 0, y: 0}
-    vision: {x: 0, y: 0}
-    hue: {x: 0, y: 0}
-    mutationSigma: {x: 0, y: 0}
+    speed: {x: 0, y: 1}
+    metabolism: {x: 0, y: 1}
+    size: {x: 0, y: 1}
+    vision: {x: 0, y: 1}
+    hue: {x: 0.4, y: 0.6}
+    mutationSigma: {x: 0, y: 1}
   speed: 2
   metabolism: 0.4
   sightRadius: 5
@@ -110,12 +110,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   worldMin: {x: -12, y: -7}
   worldMax: {x: 12, y: 7}
-  usePooling: 0
-  useEvolution: 0
+  usePooling: 1
+  useEvolution: 1
   useShelters: 0
   useFMOD: 0
   useURP2D: 0
   targetFps: 60
+  indexRebuildInterval: 0.25
+  defaultSeekInterval: 0.5
+  carnivoreSeekInterval: 0.35
+  herbivoreWanderInterval: 1
+  cellSize: 2
+  mutationScale: 1
 --- !u!114 &-3347084059014463553
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -133,12 +139,12 @@ MonoBehaviour:
   color: {r: 0, g: 1, b: 1, a: 1}
   initialCount: 20
   genomeRanges:
-    speed: {x: 0, y: 0}
-    metabolism: {x: 0, y: 0}
-    size: {x: 0, y: 0}
-    vision: {x: 0, y: 0}
-    hue: {x: 0, y: 0}
-    mutationSigma: {x: 0, y: 0}
+    speed: {x: 0, y: 1}
+    metabolism: {x: 0, y: 1}
+    size: {x: 0, y: 1}
+    vision: {x: 0, y: 1}
+    hue: {x: 0.4, y: 0.6}
+    mutationSigma: {x: 0, y: 1}
   speed: 1.8
   metabolism: 0.4
   sightRadius: 4
@@ -185,12 +191,12 @@ MonoBehaviour:
   color: {r: 1, g: 0, b: 0, a: 1}
   initialCount: 6
   genomeRanges:
-    speed: {x: 0, y: 0}
-    metabolism: {x: 0, y: 0}
-    size: {x: 0, y: 0}
-    vision: {x: 0, y: 0}
-    hue: {x: 0, y: 0}
-    mutationSigma: {x: 0, y: 0}
+    speed: {x: 0, y: 1}
+    metabolism: {x: 0, y: 1}
+    size: {x: 0, y: 1}
+    vision: {x: 0, y: 1}
+    hue: {x: 0, y: 1}
+    mutationSigma: {x: 0, y: 1}
   speed: 2.2
   metabolism: 0.6
   sightRadius: 6

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.03.00">
+	<object class="ParameterPreset" id="{9205ec6a-fda7-41ca-9839-13b1d0bfe8c0}">
+		<property name="name">
+			<value>pitchSemitone</value>
+		</property>
+		<relationship name="folder">
+			<destination>{e94a12ba-521d-4c4d-8775-0744b2045fc9}</destination>
+		</relationship>
+		<relationship name="parameter">
+			<destination>{87834ddb-267b-47db-aba2-d799a6cfcedb}</destination>
+		</relationship>
+	</object>
+	<object class="GameParameter" id="{87834ddb-267b-47db-aba2-d799a6cfcedb}">
+		<property name="maximum">
+			<value>96</value>
+		</property>
+		<property name="initialValue">
+			<value>0</value>
+		</property>
+	</object>
+</objects>
