@@ -113,8 +113,15 @@ MonoBehaviour:
   usePooling: 1
   useEvolution: 1
   useShelters: 0
-  useFMOD: 0
   useURP2D: 0
+  enableAudio: 1
+  useFMOD: 1
+  audioVolume: 0.8
+  audioVoiceLimit: 12
+  chimeCooldownMs: 40
+  scale: 0
+  minOctave: 3
+  maxOctave: 6
   targetFps: 60
   indexRebuildInterval: 0.25
   defaultSeekInterval: 0.5

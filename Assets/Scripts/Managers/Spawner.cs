@@ -1,3 +1,4 @@
+using Audio;
 using Data;
 using Entities;
 using UnityEngine;
@@ -73,6 +74,7 @@ namespace Managers
                 return;
             }
 
+            AudioService.TryPlayDeathChime(SpeciesId.Producer, p.genome, p.transform.position);
             if (Pooled)
             {
                 PoolingService.Instance.Despawn(p);
@@ -90,6 +92,7 @@ namespace Managers
                 return;
             }
 
+            AudioService.TryPlayDeathChime(SpeciesId.Herbivore, h.genome, h.transform.position);
             if (Pooled)
             {
                 PoolingService.Instance.Despawn(h);
@@ -107,6 +110,7 @@ namespace Managers
                 return;
             }
 
+            AudioService.TryPlayDeathChime(SpeciesId.Carnivore, c.genome, c.transform.position);
             if (Pooled)
             {
                 PoolingService.Instance.Despawn(c);
@@ -116,6 +120,7 @@ namespace Managers
                 Object.Destroy(c.gameObject);
             }
         }
+
 
         static Vector2 RandomPos()
             => new Vector2(Random.Range(WorldMin.x, WorldMax.x), Random.Range(WorldMin.y, WorldMax.y));
