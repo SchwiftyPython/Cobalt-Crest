@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.03.00">
+	<object class="ParameterPreset" id="{e7428b5a-9111-457e-80d2-0d5a54cff670}">
+		<property name="name">
+			<value>timbre</value>
+		</property>
+		<relationship name="folder">
+			<destination>{e94a12ba-521d-4c4d-8775-0744b2045fc9}</destination>
+		</relationship>
+		<relationship name="parameter">
+			<destination>{cea72f84-43c9-462e-863b-f62a2e807f6f}</destination>
+		</relationship>
+	</object>
+	<object class="GameParameter" id="{cea72f84-43c9-462e-863b-f62a2e807f6f}">
+		<property name="initialValue">
+			<value>0</value>
+		</property>
+	</object>
+</objects>

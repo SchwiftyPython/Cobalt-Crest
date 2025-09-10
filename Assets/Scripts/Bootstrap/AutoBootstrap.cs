@@ -1,3 +1,4 @@
+using Audio;
 using Entities;
 using Managers;
 using UnityEngine;
@@ -23,7 +24,7 @@ public static class AutoBootstrap
             new GameObject("EnvironmentManager").AddComponent<EnvironmentManager>();
         }
 
-        EnsureCamera();                // <-- new
+        EnsureCamera();                
 
         if (Object.FindObjectOfType<Canvas>() == null)
         {
@@ -33,6 +34,11 @@ public static class AutoBootstrap
         if (Producer.All.Count == 0 && Herbivore.All.Count == 0 && Carnivore.All.Count == 0)
         {
             Spawner.SpawnInitial();
+        }
+        
+        if ((ConfigService.Instance?.Sim?.enableAudio ?? true) && Object.FindObjectOfType<AudioService>() == null)
+        {
+            new GameObject("AudioService").AddComponent<AudioService>();
         }
     }
 
