@@ -3,6 +3,7 @@ using Data;
 using Managers;
 using UnityEngine;
 using Utils;
+using World;
 
 namespace Entities
 {
@@ -106,9 +107,29 @@ namespace Entities
                     _wanderTimer = wanderInterval;
                 }
             }
-
+            
             transform.position += (Vector3)(_dir * speed * dt);
             energy -= metabolism * dt;
+            
+            // --- Shelter steering (avoid dense regions) ---
+            var grid = ShelterGrid.Instance;
+            if (grid != null && grid.Enabled)
+            {
+                float avoid = (ConfigService.Instance?.Sim?.movementAvoidStrength) ?? 0.6f;
+                if (avoid > 0f)
+                {
+                    Vector2 grad = grid.SampleGradient(transform.position);   // points toward increasing density
+                    _dir = (_dir - grad * avoid).normalized;                  // steer away from density
+                }
+            }
+
+            // --- Movement with cost ---
+            float cost = 1f;
+            if (grid != null && grid.Enabled) cost = grid.GetMovementCost(transform.position);
+            transform.position += (Vector3)(_dir * (speed / Mathf.Max(0.001f, cost)) * dt);
+
+            // (keep energy/metabolism as before, or if you want extra tax:)
+            // energy -= metabolism * dt * Mathf.Lerp(1f, cost, 0.35f);
 
             var p = FindNearestProducer();
             if (p != null && Vector2.Distance(transform.position, p.transform.position) < 0.6f)

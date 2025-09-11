@@ -4,6 +4,7 @@ using Managers;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using World;
 
 /// <summary>
 /// Ensures the Phase 1 scene is fully functional without manual setup.
@@ -39,6 +40,16 @@ public static class AutoBootstrap
         if ((ConfigService.Instance?.Sim?.enableAudio ?? true) && Object.FindObjectOfType<AudioService>() == null)
         {
             new GameObject("AudioService").AddComponent<AudioService>();
+        }
+        
+        if ((ConfigService.Instance?.Sim?.sheltersEnabled ?? false) && Object.FindObjectOfType<ShelterGrid>() == null)
+        {
+            new GameObject("ShelterGrid").AddComponent<ShelterGrid>();
+        }
+
+        if ((ConfigService.Instance?.Sim?.showShelterOverlay ?? false) && Object.FindObjectOfType<ShelterGridOverlay>() == null)
+        {
+            new GameObject("ShelterGridOverlay").AddComponent<ShelterGridOverlay>();
         }
     }
 
