@@ -15,7 +15,7 @@ MonoBehaviour:
   id: 0
   speciesName: Producers
   color: {r: 0, g: 1, b: 0, a: 1}
-  initialCount: 60
+  initialCount: 600
   genomeRanges:
     speed: {x: 0, y: 1}
     metabolism: {x: 0, y: 1}
@@ -112,16 +112,15 @@ MonoBehaviour:
   worldMax: {x: 12, y: 7}
   usePooling: 1
   useEvolution: 1
-  useShelters: 0
   useURP2D: 0
   enableAudio: 1
   useFMOD: 1
   audioVolume: 0.8
-  audioVoiceLimit: 12
+  audioVoiceLimit: 8
   chimeCooldownMs: 40
-  scale: 0
+  scale: 2
   minOctave: 3
-  maxOctave: 6
+  maxOctave: 5
   targetFps: 60
   indexRebuildInterval: 0.25
   defaultSeekInterval: 0.5
@@ -129,6 +128,17 @@ MonoBehaviour:
   herbivoreWanderInterval: 1
   cellSize: 2
   mutationScale: 1
+  sheltersEnabled: 1
+  shelterCellSize: 2
+  shelterStepInterval: 0.5
+  shelterInitialFill: 0.25
+  shelterSpread: 0.18
+  shelterDecay: 0.03
+  shelterNoise: 0.01
+  movementCostInShelter: 1.5
+  movementAvoidStrength: 0.6
+  producerGrowthInShelter: 1.2
+  showShelterOverlay: 1
 --- !u!114 &-3347084059014463553
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -150,12 +160,12 @@ MonoBehaviour:
     metabolism: {x: 0, y: 1}
     size: {x: 0, y: 1}
     vision: {x: 0, y: 1}
-    hue: {x: 0.4, y: 0.6}
+    hue: {x: 0, y: 1}
     mutationSigma: {x: 0, y: 1}
   speed: 1.8
   metabolism: 0.4
   sightRadius: 4
-  reproduceThreshold: 8
+  reproduceThreshold: 40
   childCost: 3.5
   eatRate: 1.2
   attackRange: 0.7
@@ -196,7 +206,7 @@ MonoBehaviour:
   id: 2
   speciesName: Carnivores
   color: {r: 1, g: 0, b: 0, a: 1}
-  initialCount: 6
+  initialCount: 1
   genomeRanges:
     speed: {x: 0, y: 1}
     metabolism: {x: 0, y: 1}
@@ -204,14 +214,14 @@ MonoBehaviour:
     vision: {x: 0, y: 1}
     hue: {x: 0, y: 1}
     mutationSigma: {x: 0, y: 1}
-  speed: 2.2
+  speed: 1.9
   metabolism: 0.6
   sightRadius: 6
-  reproduceThreshold: 10
+  reproduceThreshold: 50
   childCost: 4.5
   eatRate: 1.2
   attackRange: 0.7
   attackDamage: 100
   growthRate: 0.6
-  maxBiomass: 5
+  maxBiomass: 50
   energyPerBiomass: 2

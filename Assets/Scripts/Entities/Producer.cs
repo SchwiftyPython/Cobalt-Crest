@@ -3,6 +3,7 @@ using Data;
 using Managers;
 using UnityEngine;
 using Utils;
+using World;
 
 namespace Entities
 {
@@ -18,15 +19,15 @@ namespace Entities
         public float maxBiomass = 5.0f;
         public float energyPerBiomass = 2.0f;
 
-        private SpriteRenderer _sr;
-        private EnvironmentManager _env;
+        private SpriteRenderer sr;
+        private EnvironmentManager env;
 
         private void OnEnable()  { All.Add(this);  EcosystemManager.Instance?.Increment("Producers"); }
         private void OnDisable() { All.Remove(this); EcosystemManager.Instance?.Decrement("Producers"); }
 
         void Awake()
         {
-            _sr = GetComponent<SpriteRenderer>() ?? gameObject.AddComponent<SpriteRenderer>();
+            sr = GetComponent<SpriteRenderer>() ?? gameObject.AddComponent<SpriteRenderer>();
             // Defaults
             // Check multiple fields to determine if genome is uninitialized
             if (genome.hue == 0f && genome.size == 0f && genome.speed == 0f)
@@ -43,13 +44,13 @@ namespace Entities
             }
 
             var baseColor = ConfigService.Instance ? ConfigService.Instance.GetSpeciesColor(SpeciesId.Producer, Color.green) : Color.green;
-            _sr.sprite = SpriteFactory.CreateDiscSprite(baseColor, 12);
-            _sr.color  = AgentGenome.HueToColor(genome.hue, 0.7f, 0.95f);
+            sr.sprite = SpriteFactory.CreateDiscSprite(baseColor, 12);
+            sr.color  = AgentGenome.HueToColor(genome.hue, 0.7f, 0.95f);
 
             var sizeMult = Mathf.Clamp(genome.size, 0.5f, 1.6f);
             transform.localScale = Vector3.one * Mathf.Lerp(0.6f, 1.3f, Mathf.InverseLerp(0.8f, 1.3f, sizeMult));
 
-            _env = Object.FindObjectOfType<EnvironmentManager>();
+            env = FindObjectOfType<EnvironmentManager>();
         }
 
         public void SetupOnSpawn(Vector2 pos, AgentGenome g)
@@ -58,13 +59,13 @@ namespace Entities
             genome = g;
             // refresh visuals quickly
             var baseColor = ConfigService.Instance ? ConfigService.Instance.GetSpeciesColor(SpeciesId.Producer, Color.green) : Color.green;
-            if (_sr == null)
+            if (sr == null)
             {
-                _sr = gameObject.AddComponent<SpriteRenderer>();
+                sr = gameObject.AddComponent<SpriteRenderer>();
             }
 
-            _sr.sprite = SpriteFactory.CreateDiscSprite(baseColor, 12);
-            _sr.color  = AgentGenome.HueToColor(genome.hue, 0.7f, 0.95f);
+            sr.sprite = SpriteFactory.CreateDiscSprite(baseColor, 12);
+            sr.color  = AgentGenome.HueToColor(genome.hue, 0.7f, 0.95f);
 
             var sizeMult = Mathf.Clamp(genome.size, 0.5f, 1.6f);
             transform.localScale = Vector3.one * Mathf.Lerp(0.6f, 1.3f, Mathf.InverseLerp(0.8f, 1.3f, sizeMult));
@@ -72,24 +73,35 @@ namespace Entities
 
         void Update()
         {
-            var dt = Time.deltaTime * EcosystemManager.SimulationSpeed;
-            if (_env == null)
+            if (env == null)
             {
-                _env = Object.FindObjectOfType<EnvironmentManager>();
+                env = FindObjectOfType<EnvironmentManager>();
             }
-
-            if (_env != null)
+            
+            var dt = Time.deltaTime * EcosystemManager.SimulationSpeed;
+            if (env != null)
             {
-                var envMult = 0.5f + 0.5f * Mathf.Min(_env.CurrentRain, _env.CurrentTemp);
-                biomass = Mathf.Min(maxBiomass, biomass + growthRate * envMult * dt);
+                var envMult = 0.5f + 0.5f * Mathf.Min(env.CurrentRain, env.CurrentTemp);
 
-                // tint deeper as biomass grows
-                if (_sr != null)
+                var shelterMult = 1f;
+                var grid = ShelterGrid.Instance;
+                if (grid != null && grid.Enabled)
+                    shelterMult = grid.GetProducerGrowthMult(transform.position);
+
+                biomass = Mathf.Min(maxBiomass, biomass + growthRate * envMult * shelterMult * dt);
+
+                if (biomass <= 0.05)
+                {
+                    Spawner.DespawnProducer(this);
+                }
+
+                if (sr != null)
                 {
                     var baseColor = AgentGenome.HueToColor(genome.hue, 0.7f, 0.95f);
-                    _sr.color = Color.Lerp(new Color(0.2f, 0.4f, 0.2f), baseColor, biomass / Mathf.Max(0.001f, maxBiomass));
+                    sr.color = Color.Lerp(new Color(0.2f, 0.4f, 0.2f), baseColor, biomass / Mathf.Max(0.001f, maxBiomass));
                 }
             }
+
         }
 
         public float Consume(float amount)

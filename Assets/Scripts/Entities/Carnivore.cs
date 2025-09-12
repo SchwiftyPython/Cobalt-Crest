@@ -3,6 +3,7 @@ using Data;
 using Managers;
 using UnityEngine;
 using Utils;
+using World;
 
 namespace Entities
 {
@@ -78,16 +79,16 @@ namespace Entities
                 var baseSpecies = ConfigService.Instance?.GetSpeciesColor(SpeciesId.Carnivore, Color.red) ?? Color.red;
 
                 // Convert base to HSV to find the "red" reference hue
-                Color.RGBToHSV(baseSpecies, out float hBase, out float sBase, out float vBase);
+                Color.RGBToHSV(baseSpecies, out var hBase, out var sBase, out var vBase);
 
                 // Limit carnivore hue to a small window centered on the base hue.
                 // 0.06 ≈ ±22° around red; adjust to taste (smaller = more uniform red).
                 const float hueWidth = 0.06f;
-                float mappedHue = Mathf.Repeat(hBase + (genome.hue - 0.5f) * (hueWidth * 2f), 1f);
+                var mappedHue = Mathf.Repeat(hBase + (genome.hue - 0.5f) * (hueWidth * 2f), 1f);
 
                 // Keep them vivid and bright (override low S/V from base if needed)
-                float s = Mathf.Max(sBase, 0.95f);
-                float v = Mathf.Max(vBase, 0.97f);
+                var s = Mathf.Max(sBase, 0.95f);
+                var v = Mathf.Max(vBase, 0.97f);
 
                 // Final color strictly "red family"
                 _sr.color = Color.HSVToRGB(mappedHue, s, v);
@@ -117,10 +118,26 @@ namespace Entities
                     _dir = Vector2.Lerp(_dir, Random.insideUnitCircle.normalized, 0.5f);
                 }
             }
-
-            transform.position += (Vector3)(_dir * speed * dt);
+            
             energy -= metabolism * dt;
+            
+            // --- Shelter steering (avoid dense regions) ---
+            var grid = ShelterGrid.Instance;
+            if (grid != null && grid.Enabled)
+            {
+                var avoid = (ConfigService.Instance?.Sim?.movementAvoidStrength) ?? 0.6f;
+                if (avoid > 0f)
+                {
+                    var grad = grid.SampleGradient(transform.position);
+                    _dir = (_dir - grad * avoid).normalized;
+                }
+            }
 
+            // --- Movement with cost ---
+            var cost = 1f;
+            if (grid != null && grid.Enabled) cost = grid.GetMovementCost(transform.position);
+            transform.position += (Vector3)(_dir * (speed / Mathf.Max(0.001f, cost)) * dt);
+            
             var h = FindNearestHerbivore();
             if (h != null && Vector2.Distance(transform.position, h.transform.position) < attackRange)
             {
