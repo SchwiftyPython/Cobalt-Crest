@@ -15,7 +15,7 @@ namespace Utils
             var clamped = Mathf.Clamp(delta, -maxDeltaDeg, maxDeltaDeg);
             var nextDeg = ca + clamped;
             var r = new Vector2(Mathf.Cos(nextDeg * Mathf.Deg2Rad), Mathf.Sin(nextDeg * Mathf.Deg2Rad));
-            return r.normalized;
+            return r;
         }
 
         public static Vector2 FromAngleDeg(float deg)
