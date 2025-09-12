@@ -46,7 +46,31 @@ namespace Data
         [Range(0f,1f)] public float movementAvoidStrength = 0.6f; // steering away from dense regions
         public float producerGrowthInShelter = 1.2f;           // <1 = penalty, >1 = buff
         public bool showShelterOverlay = false;                // press 'G' to toggle at runtime
+        
+        // --- Steering (2.6) ---
+        [Header("Steering")]
+        [Min(0.05f)] public float steerUpdateInterval = 0.2f;
+        [Range(30f, 720f)] public float maxTurnDegPerSec = 300f;
 
+        [Header("Weights")]
+        [Range(0f, 4f)] public float goalWeight = 1.0f;
+        [Range(0f, 4f)] public float separationWeight = 1.2f;
+        [Range(0f, 4f)] public float predatorAvoidWeight = 2.0f;   // herbivore only
+        [Range(0f, 3f)] public float shelterAvoidWeight = 0.6f;     // additive to existing movementAvoidStrength
+
+        [Header("Perception")]
+        [Min(0.2f)] public float separationRadius = 1.2f;           // meters
+        [Min(0.2f)] public float predatorThreatRadius = 3.0f;
+
+        [Header("Heading Sampler")]
+        public bool headingSamplesEnabled = true;
+        [Range(3, 11)] public int headingSampleCount = 7;           // odd number (includes forward)
+        [Range(10f, 160f)] public float headingSampleFovDeg = 100f;
+        [Min(0.2f)] public float headingSampleLookahead = 1.2f;
+        [Range(0f, 3f)] public float headingSampleWeight = 1.0f;    // blend into steering
+
+        [Header("Noise")]
+        [Range(0f, 1f)] public float jitterStrength = 0.15f;
 
     }
 }
