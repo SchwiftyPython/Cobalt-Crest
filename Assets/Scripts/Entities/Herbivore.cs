@@ -108,7 +108,6 @@ namespace Entities
                 }
             }
             
-            transform.position += (Vector3)(_dir * speed * dt);
             energy -= metabolism * dt;
             
             // --- Shelter steering (avoid dense regions) ---

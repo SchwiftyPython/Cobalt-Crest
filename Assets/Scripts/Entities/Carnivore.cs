@@ -118,8 +118,7 @@ namespace Entities
                     _dir = Vector2.Lerp(_dir, Random.insideUnitCircle.normalized, 0.5f);
                 }
             }
-
-            transform.position += (Vector3)(_dir * speed * dt);
+            
             energy -= metabolism * dt;
             
             // --- Shelter steering (avoid dense regions) ---
@@ -138,8 +137,7 @@ namespace Entities
             var cost = 1f;
             if (grid != null && grid.Enabled) cost = grid.GetMovementCost(transform.position);
             transform.position += (Vector3)(_dir * (speed / Mathf.Max(0.001f, cost)) * dt);
-
-
+            
             var h = FindNearestHerbivore();
             if (h != null && Vector2.Distance(transform.position, h.transform.position) < attackRange)
             {
