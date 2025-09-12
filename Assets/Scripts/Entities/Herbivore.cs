@@ -10,7 +10,12 @@ namespace Entities
     [RequireComponent(typeof(SpriteRenderer))]
     public class Herbivore : MonoBehaviour
     {
-        public static readonly List<Herbivore> All = new List<Herbivore>();
+        private static readonly List<Herbivore> NearH2 = new(64);
+        private static readonly List<Carnivore> NearC2 = new(32);
+
+        private float _steerTimer;
+
+        public static readonly List<Herbivore> All = new();
 
         // Genome and derived phenotype
         public AgentGenome genome;
@@ -29,10 +34,19 @@ namespace Entities
         private float _retargetTimer, _wanderTimer;
         private SpriteRenderer _sr;
 
-        static readonly List<Producer> _nearP = new List<Producer>(64);
+        static readonly List<Producer> _nearP = new(64);
 
-        private void OnEnable()  { All.Add(this);  EcosystemManager.Instance?.Increment("Herbivores"); }
-        private void OnDisable() { All.Remove(this); EcosystemManager.Instance?.Decrement("Herbivores"); }
+        private void OnEnable()
+        {
+            All.Add(this);
+            EcosystemManager.Instance?.Increment("Herbivores");
+        }
+
+        private void OnDisable()
+        {
+            All.Remove(this);
+            EcosystemManager.Instance?.Decrement("Herbivores");
+        }
 
         void Awake()
         {
@@ -64,120 +78,242 @@ namespace Entities
             // Base values from species def (fall back to current/public defaults)
             var baseSpeed = def ? def.speed : speed;
             var baseMetab = def ? def.metabolism : metabolism;
-            var baseVision= def ? def.sightRadius : sightRadius;
+            var baseVision = def ? def.sightRadius : sightRadius;
 
             // Multiply by genome (genome ranges should be centered ~1.0 for multipliers)
-            speed      = baseSpeed * Mathf.Max(0.05f, genome.speed);
+            speed = baseSpeed * Mathf.Max(0.05f, genome.speed);
             metabolism = baseMetab * Mathf.Max(0.01f, genome.metabolism);
-            sightRadius= baseVision * Mathf.Max(0.1f,  genome.vision);
+            sightRadius = baseVision * Mathf.Max(0.1f, genome.vision);
 
             // Other species config (unchanged)
-            if (def) { eatRate = def.eatRate; reproduceThreshold = def.reproduceThreshold; childCost = def.childCost; }
+            if (def)
+            {
+                eatRate = def.eatRate;
+                reproduceThreshold = def.reproduceThreshold;
+                childCost = def.childCost;
+            }
 
             // Visuals: hue & size
             if (_sr != null)
             {
-                _sr.sprite = SpriteFactory.CreateDiscSprite(ConfigService.Instance?.GetSpeciesColor(SpeciesId.Herbivore, Color.cyan) ?? Color.cyan, 14);
-                _sr.color  = AgentGenome.HueToColor(genome.hue);
+                _sr.sprite = SpriteFactory.CreateDiscSprite(
+                    ConfigService.Instance?.GetSpeciesColor(SpeciesId.Herbivore, Color.cyan) ?? Color.cyan, 14);
+                _sr.color = AgentGenome.HueToColor(genome.hue);
                 var sizeMult = Mathf.Clamp(genome.size, 0.4f, 2f);
                 transform.localScale = Vector3.one * Mathf.Lerp(0.7f, 1.4f, Mathf.InverseLerp(0.8f, 1.3f, sizeMult));
             }
         }
 
-        void Update()
+        private void Update()
         {
             var dt = Time.deltaTime * EcosystemManager.SimulationSpeed;
-            _retargetTimer -= dt;
-            _wanderTimer   -= dt;
+            var sim = ConfigService.Instance?.Sim;
 
-            var seekInterval   = (ConfigService.Instance?.Sim?.defaultSeekInterval)    ?? 0.5f;
-            var wanderInterval = (ConfigService.Instance?.Sim?.herbivoreWanderInterval)?? 1.0f;
+            // --- Recompute steering at a fixed cadence ---
+            _steerTimer -= Time.deltaTime;
+            var steerInterval = sim?.steerUpdateInterval ?? 0.2f;
+            var maxTurn = sim?.maxTurnDegPerSec ?? 300f;
 
-            if (_retargetTimer <= 0f)
+            if (_steerTimer <= 0f)
             {
-                _retargetTimer = seekInterval;
+                _steerTimer = steerInterval;
+
+                // Goal: nearest producer
+                var goalDir = Vector2.zero;
                 var target = FindNearestProducer();
                 if (target != null)
                 {
-                    _dir = ((Vector2)target.transform.position - (Vector2)transform.position).normalized;
+                    goalDir = ((Vector2)target.transform.position - (Vector2)transform.position).normalized;
                 }
-                else if (_wanderTimer <= 0f)
+
+                // Separation from other herbivores (1/r^2 falloff)
+                var sepDir = Vector2.zero;
+                var idx = SpatialIndex.Instance;
+                var sepRadius = sim?.separationRadius ?? 1.2f;
+                if (idx != null)
                 {
-                    _dir = Vector2.Lerp(_dir, Random.insideUnitCircle.normalized, 0.5f);
-                    _wanderTimer = wanderInterval;
+                    idx.QueryHerbivores(transform.position, sepRadius, NearH2);
+                    for (var i = 0; i < NearH2.Count; i++)
+                    {
+                        var other = NearH2[i];
+                        if (other == null || other == this) continue;
+
+                        var toMe = (Vector2)transform.position - (Vector2)other.transform.position;
+                        var d2 = toMe.sqrMagnitude;
+                        if (d2 < 1e-6f) continue;
+
+                        sepDir += toMe / d2;
+                    }
                 }
-            }
-            
-            energy -= metabolism * dt;
-            
-            // --- Shelter steering (avoid dense regions) ---
-            var grid = ShelterGrid.Instance;
-            if (grid != null && grid.Enabled)
-            {
-                float avoid = (ConfigService.Instance?.Sim?.movementAvoidStrength) ?? 0.6f;
-                if (avoid > 0f)
+
+                if (sepDir.sqrMagnitude > 1e-6f) sepDir.Normalize();
+
+                // Predator avoidance (carnivores)
+                var fleeDir = Vector2.zero;
+                var threatR = sim?.predatorThreatRadius ?? 3.0f;
+                if (idx != null)
                 {
-                    Vector2 grad = grid.SampleGradient(transform.position);   // points toward increasing density
-                    _dir = (_dir - grad * avoid).normalized;                  // steer away from density
+                    idx.QueryCarnivores(transform.position, threatR, NearC2);
+                    for (var i = 0; i < NearC2.Count; i++)
+                    {
+                        var c = NearC2[i];
+                        if (c == null) continue;
+
+                        var away = (Vector2)transform.position - (Vector2)c.transform.position;
+                        var d2 = away.sqrMagnitude;
+                        if (d2 < 1e-6f) continue;
+
+                        fleeDir += away / d2;
+                    }
                 }
+
+                if (fleeDir.sqrMagnitude > 1e-6f) fleeDir.Normalize();
+
+                // Shelter avoidance via gradient
+                var grid = ShelterGrid.Instance;
+                var grad = Vector2.zero;
+                if (grid != null && grid.Enabled)
+                {
+                    grad = grid.SampleGradient(transform.position); // points toward density
+                }
+
+                // Optional heading sampling (feelers)
+                var sampleDir = Vector2.zero;
+                if (sim?.headingSamplesEnabled ?? true)
+                {
+                    var count = Mathf.Clamp(sim?.headingSampleCount ?? 7, 3, 11);
+                    var fov = sim?.headingSampleFovDeg ?? 100f;
+                    var look = sim?.headingSampleLookahead ?? 1.2f;
+
+                    var best = float.NegativeInfinity;
+                    var baseAngle = Mathf.Atan2(_dir.y, _dir.x) * Mathf.Rad2Deg;
+
+                    for (var i = 0; i < count; i++)
+                    {
+                        var t = count == 1 ? 0f : i / (float)(count - 1);
+                        var angle = baseAngle + Mathf.Lerp(-fov * 0.5f, fov * 0.5f, t);
+                        var h = Steering.FromAngleDeg(angle).normalized;
+
+                        var probe = (Vector2)transform.position + h * look;
+                        var shelter = grid != null && grid.Enabled ? grid.Sample01(probe) : 0f;
+
+                        // Proximity penalty vs. nearby herbivores at the probe
+                        var prox = 0f;
+                        if (NearH2.Count > 0)
+                        {
+                            var minD2 = float.PositiveInfinity;
+                            for (var j = 0; j < NearH2.Count; j++)
+                            {
+                                var o = NearH2[j];
+                                if (o == null || o == this) continue;
+                                var d2 = ((Vector2)o.transform.position - probe).sqrMagnitude;
+                                if (d2 < minD2) minD2 = d2;
+                            }
+
+                            if (!float.IsInfinity(minD2))
+                            {
+                                var d = Mathf.Sqrt(Mathf.Max(1e-4f, minD2));
+                                var r = sepRadius;
+                                prox = Mathf.Clamp01((r - d) / r); // 1 if inside separation radius
+                            }
+                        }
+
+                        var score = (1f - shelter) + (1f - prox) * 0.5f;
+                        if (score > best)
+                        {
+                            best = score;
+                            sampleDir = h;
+                        }
+                    }
+                }
+
+                // Blend forces
+                var desired =
+                    (sim?.goalWeight ?? 1f) * goalDir +
+                    (sim?.separationWeight ?? 1.2f) * sepDir +
+                    (sim?.predatorAvoidWeight ?? 2f) * fleeDir +
+                    (sim?.shelterAvoidWeight ?? 0.6f) * (-grad) +
+                    (sim?.headingSampleWeight ?? 1.0f) * sampleDir;
+
+                // Small jitter to break symmetry
+                var jitter = sim?.jitterStrength ?? 0.15f;
+                if (jitter > 0f) desired += Random.insideUnitCircle * jitter;
+
+                if (desired.sqrMagnitude > 1e-6f) desired.Normalize();
+                _dir = Steering.RotateTowards(_dir, desired, maxTurn * dt);
             }
 
-            // --- Movement with cost ---
-            float cost = 1f;
-            if (grid != null && grid.Enabled) cost = grid.GetMovementCost(transform.position);
+            // Move with shelter movement cost
+            var grid2 = ShelterGrid.Instance;
+            var cost = 1f;
+            if (grid2 != null && grid2.Enabled) cost = grid2.GetMovementCost(transform.position);
             transform.position += (Vector3)(_dir * (speed / Mathf.Max(0.001f, cost)) * dt);
 
-            // (keep energy/metabolism as before, or if you want extra tax:)
-            // energy -= metabolism * dt * Mathf.Lerp(1f, cost, 0.35f);
+            // Metabolism
+            energy -= metabolism * dt;
 
+            // Eat producer on contact
             var p = FindNearestProducer();
             if (p != null && Vector2.Distance(transform.position, p.transform.position) < 0.6f)
             {
                 energy += p.Consume(eatRate * dt);
             }
 
+            // Reproduce
             if (energy >= reproduceThreshold)
             {
                 energy -= childCost;
-
-                var sim   = ConfigService.Instance?.Sim;
-                var evo  = sim != null && sim.useEvolution;
-                var ms  = sim != null ? sim.mutationScale : 1f;
-
+                var evo = sim != null && sim.useEvolution;
+                var ms = sim?.mutationScale ?? 1f;
                 var childGenome = evo ? genome.Mutated(SpeciesId.Herbivore, ms) : genome;
                 Spawner.SpawnHerbivore((Vector2)transform.position + Random.insideUnitCircle * 0.5f, childGenome);
             }
 
+            // Die
             if (energy <= 0f)
             {
                 Spawner.DespawnHerbivore(this);
             }
         }
 
+
         private Producer FindNearestProducer()
         {
-            Producer best = null; var bestD = sightRadius;
+            Producer best = null;
+            var bestD = sightRadius;
             var idx = SpatialIndex.Instance;
             if (idx != null)
             {
                 idx.QueryProducers(transform.position, sightRadius, _nearP);
                 for (var i = 0; i < _nearP.Count; i++)
                 {
-                    var p = _nearP[i]; if (p == null)
+                    var p = _nearP[i];
+                    if (p == null)
                     {
                         continue;
                     }
 
                     var d = Vector2.Distance(transform.position, p.transform.position);
-                    if (d < bestD) { bestD = d; best = p; }
+                    if (d < bestD)
+                    {
+                        bestD = d;
+                        best = p;
+                    }
                 }
+
                 return best;
             }
+
             foreach (var p in Producer.All)
             {
                 var d = Vector2.Distance(transform.position, p.transform.position);
-                if (d < bestD) { bestD = d; best = p; }
+                if (d < bestD)
+                {
+                    bestD = d;
+                    best = p;
+                }
             }
+
             return best;
         }
     }
